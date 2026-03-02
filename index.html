@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter – 永久保存版</title>
+    <title>☕ Coffee Counter – Auto-save</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
     <style>
         * {
@@ -234,15 +234,15 @@
         <h1>
             <span>☕</span> Coffee Counter
         </h1>
-        <div class="subhead">Each coffee = €0.80 – 数据会自动保存，刷新页面也不会丢失</div>
+        <div class="subhead">Each coffee = €0.80 – Data auto-saves, survives page refresh</div>
 
         <div class="add-section">
             <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
-            <button id="addBtn">➕ Add</button>
+            <button id="addBtn">➕ Add Person</button>
         </div>
 
         <div id="listContainer" class="counter-list">
-            <!-- 动态内容会显示在这里 -->
+            <!-- Dynamic content appears here -->
         </div>
 
         <div class="total" id="totalDisplay">
@@ -252,9 +252,9 @@
 
         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
             <div class="footnote" style="margin-top: 0;">
-                ✨ 点击 ☕ 记录一杯咖啡 (€0.80) · 数据自动保存
+                ✨ Click ☕ to record a coffee (€0.80) · Data auto-saves
             </div>
-            <button class="clear-btn" id="clearAllBtn">🗑️ 清除所有数据</button>
+            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
         </div>
     </div>
 
@@ -262,21 +262,21 @@
         (function() {
             const COFFEE_PRICE = 0.80;
 
-            // 生成唯一ID
+            // Generate unique ID
             function generateId() {
                 return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             }
 
-            // 数据数组
+            // Data array
             let persons = [];
 
-            // ----- localStorage 操作函数 -----
+            // ----- localStorage functions -----
             function saveToLocalStorage() {
                 try {
                     localStorage.setItem('coffeePersons', JSON.stringify(persons));
-                    console.log('数据已保存', persons); // 调试用
+                    console.log('Data saved', persons);
                 } catch (e) {
-                    console.error('保存失败', e);
+                    console.error('Save failed', e);
                 }
             }
 
@@ -285,23 +285,23 @@
                     const saved = localStorage.getItem('coffeePersons');
                     if (saved) {
                         persons = JSON.parse(saved);
-                        console.log('已加载保存的数据', persons); // 调试用
+                        console.log('Loaded saved data', persons);
                     } else {
-                        // 首次使用，添加示例数据
+                        // First time: add sample data
                         persons = [
                             { id: generateId(), name: 'Alex', count: 2 },
                             { id: generateId(), name: 'Jamie', count: 1 }
                         ];
-                        console.log('首次使用，创建示例数据'); // 调试用
+                        console.log('First visit: created sample data');
                     }
                 } catch (e) {
-                    console.error('加载失败', e);
+                    console.error('Load failed', e);
                     persons = [];
                 }
             }
             // --------------------------------
 
-            // DOM 元素
+            // DOM elements
             const listContainer = document.getElementById('listContainer');
             const totalCupsSpan = document.getElementById('totalCups');
             const totalAmountSpan = document.getElementById('totalAmount');
@@ -309,16 +309,16 @@
             const addBtn = document.getElementById('addBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
 
-            // 渲染函数
+            // Render function
             function render() {
                 if (!listContainer) return;
 
-                // 如果没有人，显示空状态
+                // Empty state
                 if (!persons || persons.length === 0) {
                     listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
                     totalCupsSpan.innerText = '0';
                     totalAmountSpan.innerText = '€0.00';
-                    saveToLocalStorage(); // 保存空状态
+                    saveToLocalStorage();
                     return;
                 }
 
@@ -326,7 +326,7 @@
                 let totalCups = 0;
 
                 persons.forEach(person => {
-                    // 确保每个person都有必要的属性
+                    // Ensure each person has required properties
                     if (!person.count) person.count = 0;
                     if (!person.id) person.id = generateId();
                     
@@ -343,8 +343,8 @@
                                 <span class="amount">€${amount.toFixed(2)}</span>
                             </div>
                             <div class="actions">
-                                <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')" title="喝了一杯咖啡">☕</button>
-                                <button class="delete-btn" onclick="window.deletePerson('${person.id}')" title="移除这个人">✖</button>
+                                <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')" title="Had a coffee!">☕</button>
+                                <button class="delete-btn" onclick="window.deletePerson('${person.id}')" title="Remove person">✖</button>
                             </div>
                         </div>
                     `;
@@ -354,11 +354,11 @@
                 totalCupsSpan.innerText = totalCups;
                 totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
                 
-                // 渲染完成后保存数据
+                // Save after render
                 saveToLocalStorage();
             }
 
-            // HTML转义（防止XSS）
+            // HTML escape (prevents XSS)
             function escapeHtml(unsafe) {
                 if (!unsafe) return '';
                 return unsafe.toString()
@@ -369,7 +369,7 @@
                     .replace(/'/g, '&#039;');
             }
 
-            // 全局函数：增加咖啡计数
+            // Global: increment coffee count
             window.incrementCoffee = function(id) {
                 const person = persons.find(p => p.id === id);
                 if (person) {
@@ -378,25 +378,19 @@
                 }
             };
 
-            // 全局函数：删除一个人
+            // Global: delete a person
             window.deletePerson = function(id) {
                 persons = persons.filter(p => p.id !== id);
                 render();
             };
 
-            // 添加新人
+            // Add new person
             addBtn.addEventListener('click', function() {
                 const rawName = newNameInput.value.trim();
                 if (rawName === '') {
                     alert('Please enter a name.');
                     return;
                 }
-
-                // 检查是否重名（可选）
-                // if (persons.some(p => p.name.toLowerCase() === rawName.toLowerCase())) {
-                //     alert('这个名字已经存在，请用不同的名字');
-                //     return;
-                // }
 
                 const newPerson = {
                     id: generateId(),
@@ -409,29 +403,28 @@
                 newNameInput.focus();
             });
 
-            // 回车键添加
+            // Enter key to add
             newNameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     addBtn.click();
                 }
             });
 
-            // 清除所有数据按钮
+            // Clear all data button
             if (clearAllBtn) {
                 clearAllBtn.addEventListener('click', function() {
-                    if (confirm('确定要清除所有数据吗？')) {
+                    if (confirm('Are you sure you want to clear all data?')) {
                         persons = [];
                         render();
                     }
                 });
             }
 
-            // ----- 初始化：从localStorage加载数据 -----
+            // ----- Initialize: load from localStorage -----
             loadFromLocalStorage();
             render();
             
-            // 在控制台打印帮助信息
-            console.log('Coffee Counter 已启动！数据会自动保存。');
+            console.log('Coffee Counter started! Data auto-saves to localStorage.');
         })();
     </script>
 </body>
