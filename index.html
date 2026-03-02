@@ -5,53 +5,227 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>☕ Coffee Counter</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        /* (styles same as before – keep them) */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #f9f5f0; display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-        .card { max-width: 650px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); padding: 32px; }
-        h1 { display: flex; align-items: center; gap: 10px; font-size: 2rem; color: #3b2b1f; margin-bottom: 8px; }
-        h1 span { font-size: 2.5rem; }
-        .subhead { color: #7b5e4a; margin-bottom: 28px; border-left: 4px solid #b98a6b; padding-left: 16px; }
-        .add-section { display: flex; gap: 10px; margin-bottom: 32px; }
-        .add-section input { flex: 1; padding: 14px 18px; border: 2px solid #e8d9cc; border-radius: 50px; font-size: 1rem; outline: none; }
-        .add-section input:focus { border-color: #b98a6b; }
-        .add-section button { background: #6f4e37; color: white; border: none; padding: 14px 28px; border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .add-section button:hover { background: #5a3f2c; }
-        .counter-list { margin: 24px 0; }
-        .person-item { display: flex; align-items: center; justify-content: space-between; background: #fefcf9; padding: 12px 18px; border-radius: 40px; margin-bottom: 10px; border: 1px solid #f0e5dc; }
-        .person-item:hover { border-color: #dbbc9f; }
-        .person-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .avatar { width: 44px; height: 44px; background: #dbbc9f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; text-transform: uppercase; }
-        .name { font-weight: 600; font-size: 1.2rem; color: #3b2b1f; }
-        .count-badge { background: #f0e5dc; padding: 6px 14px; border-radius: 30px; font-weight: 700; color: #6f4e37; }
-        .amount { background: #e2d5ca; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #2c5f2d; }
-        .actions { display: flex; gap: 8px; }
-        .coffee-btn { background: #b98a6b; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(185,138,107,0.3); }
-        .coffee-btn:hover { background: #9e6f50; transform: scale(1.1); }
-        .delete-btn { background: transparent; color: #c4a084; border: 2px solid #e8d9cc; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-        .delete-btn:hover { background: #fbe9e7; color: #b85c5c; border-color: #b85c5c; }
-        .total { display: flex; justify-content: space-between; align-items: center; padding: 16px 8px 0; border-top: 2px dashed #e8d9cc; font-size: 1.4rem; font-weight: 600; color: #3b2b1f; }
-        .total span { color: #6f4e37; font-size: 2rem; margin-left: 10px; }
-        .total-amount { background: #6f4e37; color: white; padding: 8px 18px; border-radius: 40px; }
-        .clear-btn { background: #c44b4b; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; }
-        .clear-btn:hover { background: #a13a3a; }
-        .footnote { margin-top: 20px; font-size: 0.85rem; color: #b7a089; text-align: center; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f9f5f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+            padding: 32px;
+        }
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 2rem;
+            color: #3b2b1f;
+            margin-bottom: 8px;
+        }
+        h1 span {
+            font-size: 2.5rem;
+        }
+        .subhead {
+            color: #7b5e4a;
+            margin-bottom: 28px;
+            border-left: 4px solid #b98a6b;
+            padding-left: 16px;
+        }
+        .add-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+        .add-section input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e8d9cc;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+        }
+        .add-section input:focus {
+            border-color: #b98a6b;
+        }
+        .add-section button {
+            background: #6f4e37;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .add-section button:hover {
+            background: #5a3f2c;
+        }
+        .counter-list {
+            margin: 24px 0;
+        }
+        .person-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fefcf9;
+            padding: 12px 18px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #f0e5dc;
+        }
+        .person-item:hover {
+            border-color: #dbbc9f;
+        }
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: #dbbc9f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #3b2b1f;
+        }
+        .count-badge {
+            background: #f0e5dc;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #6f4e37;
+        }
+        .amount {
+            background: #e2d5ca;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #2c5f2d;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .coffee-btn {
+            background: #b98a6b;
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(185,138,107,0.3);
+        }
+        .coffee-btn:hover {
+            background: #9e6f50;
+            transform: scale(1.1);
+        }
+        .delete-btn {
+            background: transparent;
+            color: #c4a084;
+            border: 2px solid #e8d9cc;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background: #fbe9e7;
+            color: #b85c5c;
+            border-color: #b85c5c;
+        }
+        .total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 8px 0;
+            border-top: 2px dashed #e8d9cc;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #3b2b1f;
+        }
+        .total span {
+            color: #6f4e37;
+            font-size: 2rem;
+            margin-left: 10px;
+        }
+        .total-amount {
+            background: #6f4e37;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+        }
+        .clear-btn {
+            background: #c44b4b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .clear-btn:hover {
+            background: #a13a3a;
+        }
+        .footnote {
+            margin-top: 20px;
+            font-size: 0.85rem;
+            color: #b7a089;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1><span>☕</span> Coffee Counter</h1>
+        <h1>
+            <span>☕</span> Coffee Counter
+        </h1>
         <div class="subhead">Each coffee = €0.80 – Syncs across all devices</div>
 
         <div class="add-section">
-            <input type="text" id="newName" placeholder="Your name (e.g. Alex)">
+            <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
             <button id="addBtn">➕ Add Person</button>
         </div>
 
-        <div id="listContainer" class="counter-list"></div>
+        <div id="listContainer" class="counter-list">
+            <!-- Content populated by JavaScript -->
+        </div>
 
         <div class="total">
             <span>Total cups <span id="totalCups">0</span></span>
@@ -62,13 +236,15 @@
             <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
         </div>
 
-        <div class="footnote">✨ Click ☕ to record a coffee · Data syncs in real time</div>
+        <div class="footnote">
+            ✨ Click ☕ to record a coffee · Data syncs in real time
+        </div>
     </div>
 
     <script>
         const COFFEE_PRICE = 0.80;
 
-        // 🔴 REPLACE THIS WITH YOUR OWN FIREBASE CONFIG 🔴
+        // 🔴 REPLACE WITH YOUR OWN FIREBASE CONFIGURATION 🔴
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -86,6 +262,7 @@
 
         let persons = [];
 
+        // DOM elements
         const listContainer = document.getElementById('listContainer');
         const totalCupsSpan = document.getElementById('totalCups');
         const totalAmountSpan = document.getElementById('totalAmount');
@@ -93,17 +270,23 @@
         const addBtn = document.getElementById('addBtn');
         const clearAllBtn = document.getElementById('clearAllBtn');
 
+        // Helper: generate a unique ID
         function generateId() {
             return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
         }
 
+        // Escape HTML to prevent XSS
         function escapeHtml(unsafe) {
             if (!unsafe) return '';
             return unsafe.toString()
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
         }
 
+        // Render the list and totals
         function render() {
             if (!persons || persons.length === 0) {
                 listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
@@ -114,31 +297,34 @@
 
             let html = '';
             let totalCups = 0;
-            persons.forEach(p => {
-                totalCups += p.count || 0;
-                const amount = (p.count || 0) * COFFEE_PRICE;
-                const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
+
+            persons.forEach(person => {
+                totalCups += person.count || 0;
+                const amount = (person.count || 0) * COFFEE_PRICE;
+                const initial = person.name ? person.name.charAt(0).toUpperCase() : '?';
+
                 html += `
-                    <div class="person-item" data-id="${p.id}">
+                    <div class="person-item" data-id="${person.id}">
                         <div class="person-info">
                             <div class="avatar">${escapeHtml(initial)}</div>
-                            <span class="name">${escapeHtml(p.name)}</span>
-                            <span class="count-badge">${p.count || 0} cup${(p.count || 0) !== 1 ? 's' : ''}</span>
+                            <span class="name">${escapeHtml(person.name)}</span>
+                            <span class="count-badge">${person.count || 0} cup${(person.count || 0) !== 1 ? 's' : ''}</span>
                             <span class="amount">€${amount.toFixed(2)}</span>
                         </div>
                         <div class="actions">
-                            <button class="coffee-btn" onclick="window.incrementCoffee('${p.id}')">☕</button>
-                            <button class="delete-btn" onclick="window.deletePerson('${p.id}')">✖</button>
+                            <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')">☕</button>
+                            <button class="delete-btn" onclick="window.deletePerson('${person.id}')">✖</button>
                         </div>
                     </div>
                 `;
             });
+
             listContainer.innerHTML = html;
             totalCupsSpan.innerText = totalCups;
             totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
         }
 
-        // Firebase listeners
+        // ----- Firebase listeners (real‑time sync) -----
         personsRef.on('child_added', (snapshot) => {
             const data = snapshot.val();
             if (data && !persons.find(p => p.id === snapshot.key)) {
@@ -150,9 +336,12 @@
 
         personsRef.on('child_changed', (snapshot) => {
             const data = snapshot.val();
-            const idx = persons.findIndex(p => p.id === snapshot.key);
-            if (idx !== -1) persons[idx] = { id: snapshot.key, ...data };
-            else persons.push({ id: snapshot.key, ...data });
+            const index = persons.findIndex(p => p.id === snapshot.key);
+            if (index !== -1) {
+                persons[index] = { id: snapshot.key, ...data };
+            } else {
+                persons.push({ id: snapshot.key, ...data });
+            }
             persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             render();
         });
@@ -162,29 +351,36 @@
             render();
         });
 
-        // Initial load + sample data if empty
+        // Load initial data, and if empty, seed with sample data
         personsRef.once('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
                 persons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
             } else {
-                const sample = [
+                // No data yet – add two sample persons
+                const sampleData = [
                     { id: generateId(), name: 'Alex', count: 2 },
                     { id: generateId(), name: 'Jamie', count: 1 }
                 ];
-                persons = sample;
-                sample.forEach(p => personsRef.child(p.id).set({ name: p.name, count: p.count }));
+                persons = sampleData;
+                sampleData.forEach(person => {
+                    personsRef.child(person.id).set({
+                        name: person.name,
+                        count: person.count
+                    });
+                });
             }
             persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             render();
         });
 
+        // ----- Global functions for button clicks -----
         window.incrementCoffee = (id) => {
             const person = persons.find(p => p.id === id);
             if (person) {
                 person.count = (person.count || 0) + 1;
-                render();
-                personsRef.child(id).update({ count: person.count });
+                render(); // optimistically update UI
+                personsRef.child(id).update({ count: person.count }); // sync to Firebase
             }
         };
 
@@ -194,24 +390,33 @@
             personsRef.child(id).remove();
         };
 
+        // Add new person
         addBtn.addEventListener('click', () => {
             const name = newNameInput.value.trim();
-            if (!name) return alert('Please enter a name.');
-            const id = generateId();
-            persons.push({ id, name, count: 0 });
+            if (!name) {
+                alert('Please enter a name.');
+                return;
+            }
+
+            const newId = generateId();
+            const newPerson = { id: newId, name, count: 0 };
+            persons.push(newPerson);
             persons.sort((a, b) => a.name.localeCompare(b.name));
             render();
-            personsRef.child(id).set({ name, count: 0 });
+            personsRef.child(newId).set({ name, count: 0 });
+
             newNameInput.value = '';
             newNameInput.focus();
         });
 
+        // Allow Enter key to add
         newNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addBtn.click();
         });
 
+        // Clear all data
         clearAllBtn.addEventListener('click', () => {
-            if (confirm('Clear all data? This affects all devices.')) {
+            if (confirm('Are you sure you want to clear all data? This will affect all devices.')) {
                 persons = [];
                 render();
                 personsRef.remove();
