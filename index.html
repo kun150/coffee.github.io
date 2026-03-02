@@ -3,65 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter – Instant Sync</title>
+    <title>☕ Coffee Counter</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        /* (same styles as before – keep them) */
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #f9f5f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { max-width: 650px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); padding: 32px; }
-        h1 { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 2rem; color: #3b2b1f; margin-bottom: 8px; flex-wrap: wrap; }
-        h1 span { font-size: 2.5rem; }
-        .sync-badge { background: #4a6f44; color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 30px; margin-left: 15px; display: inline-block; vertical-align: middle; }
-        .subhead { color: #7b5e4a; margin-bottom: 28px; border-left: 4px solid #b98a6b; padding-left: 16px; font-weight: 400; }
-        .add-section { display: flex; gap: 10px; margin-bottom: 32px; }
-        .add-section input { flex: 1; padding: 14px 18px; border: 2px solid #e8d9cc; border-radius: 50px; font-size: 1rem; outline: none; transition: 0.2s; }
-        .add-section input:focus { border-color: #b98a6b; }
-        .add-section button { background: #6f4e37; color: white; border: none; padding: 14px 28px; border-radius: 50px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .add-section button:hover { background: #5a3f2c; transform: scale(1.02); }
-        .counter-list { margin: 24px 0; }
-        .person-item { display: flex; align-items: center; justify-content: space-between; background: #fefcf9; padding: 12px 18px; border-radius: 40px; margin-bottom: 10px; border: 1px solid #f0e5dc; transition: 0.2s; }
-        .person-item:hover { border-color: #dbbc9f; background: #fff9f3; }
-        .person-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .avatar { width: 44px; height: 44px; background: #dbbc9f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem; text-transform: uppercase; }
-        .name { font-weight: 600; font-size: 1.2rem; color: #3b2b1f; }
-        .count-badge { background: #f0e5dc; padding: 6px 14px; border-radius: 30px; font-weight: 700; color: #6f4e37; margin-left: 10px; white-space: nowrap; }
-        .amount { background: #e2d5ca; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #2c5f2d; font-size: 1rem; margin-left: 5px; white-space: nowrap; }
-        .actions { display: flex; gap: 8px; }
-        .coffee-btn { background: #b98a6b; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; box-shadow: 0 4px 8px rgba(185,138,107,0.3); }
-        .coffee-btn:hover { background: #9e6f50; transform: scale(1.1); }
-        .coffee-btn:active { transform: scale(0.95); }
-        .delete-btn { background: transparent; color: #c4a084; border: 2px solid #e8d9cc; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: 0.1s; }
-        .delete-btn:hover { background: #fbe9e7; color: #b85c5c; border-color: #b85c5c; }
-        .delete-btn:active { transform: scale(0.95); }
-        .total { text-align: right; padding: 16px 8px 0; border-top: 2px dashed #e8d9cc; font-size: 1.4rem; font-weight: 600; color: #3b2b1f; display: flex; justify-content: space-between; align-items: center; }
-        .total span { color: #6f4e37; font-size: 2rem; margin-left: 10px; }
-        .total-amount { background: #6f4e37; color: white; padding: 8px 18px; border-radius: 40px; font-size: 1.3rem; font-weight: 500; }
-        .footnote { margin-top: 30px; font-size: 0.85rem; color: #b7a089; text-align: center; }
-        .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.85rem; }
-        .sync-status { color: #4a6f44; background: #e6f0e4; padding: 4px 12px; border-radius: 30px; }
-        .clear-btn { background: #c44b4b; color: white; border: none; padding: 8px 16px; border-radius: 40px; font-size: 0.9rem; cursor: pointer; transition: 0.1s; }
-        .clear-btn:hover { background: #a13a3a; }
-        .clear-btn:active { transform: scale(0.95); }
-        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
-        @keyframes dots { 0%,20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%,100% { content: ''; } }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f9f5f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+            padding: 32px;
+        }
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 2rem;
+            color: #3b2b1f;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        h1 span {
+            font-size: 2.5rem;
+        }
+        .subhead {
+            color: #7b5e4a;
+            margin-bottom: 28px;
+            border-left: 4px solid #b98a6b;
+            padding-left: 16px;
+            font-weight: 400;
+        }
+        .add-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+        .add-section input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e8d9cc;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .add-section input:focus {
+            border-color: #b98a6b;
+        }
+        .add-section button {
+            background: #6f4e37;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .add-section button:hover {
+            background: #5a3f2c;
+            transform: scale(1.02);
+        }
+        .counter-list {
+            margin: 24px 0;
+        }
+        .person-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fefcf9;
+            padding: 12px 18px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #f0e5dc;
+            transition: 0.2s;
+        }
+        .person-item:hover {
+            border-color: #dbbc9f;
+            background: #fff9f3;
+        }
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: #dbbc9f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        .name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #3b2b1f;
+        }
+        .count-badge {
+            background: #f0e5dc;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #6f4e37;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .amount {
+            background: #e2d5ca;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #2c5f2d;
+            font-size: 1rem;
+            margin-left: 5px;
+            white-space: nowrap;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .coffee-btn {
+            background: #b98a6b;
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.1s;
+            box-shadow: 0 4px 8px rgba(185,138,107,0.3);
+        }
+        .coffee-btn:hover {
+            background: #9e6f50;
+            transform: scale(1.1);
+        }
+        .coffee-btn:active {
+            transform: scale(0.95);
+        }
+        .delete-btn {
+            background: transparent;
+            color: #c4a084;
+            border: 2px solid #e8d9cc;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .delete-btn:hover {
+            background: #fbe9e7;
+            color: #b85c5c;
+            border-color: #b85c5c;
+        }
+        .delete-btn:active {
+            transform: scale(0.95);
+        }
+        .total {
+            text-align: right;
+            padding: 16px 8px 0;
+            border-top: 2px dashed #e8d9cc;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #3b2b1f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total span {
+            color: #6f4e37;
+            font-size: 2rem;
+            margin-left: 10px;
+        }
+        .total-amount {
+            background: #6f4e37;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        .footnote {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #b7a089;
+            text-align: center;
+        }
+        .clear-btn {
+            background: #c44b4b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.1s;
+            margin-top: 10px;
+        }
+        .clear-btn:hover {
+            background: #a13a3a;
+        }
+        .clear-btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
     <div class="card">
         <h1>
             <span>☕</span> Coffee Counter
-            <span class="sync-badge">⚡ INSTANT SYNC</span>
         </h1>
-        <div class="subhead">Each coffee = €0.80 – Updates appear instantly on all devices</div>
-
-        <div class="status-bar">
-            <span class="sync-status" id="syncStatus">🔄 Connecting<span class="loading-dots"></span></span>
-            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
-        </div>
+        <div class="subhead">Each coffee = €0.80 – Syncs across all devices</div>
 
         <div class="add-section">
             <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
@@ -69,7 +255,7 @@
         </div>
 
         <div id="listContainer" class="counter-list">
-            <div style="text-align:center; color:#b7a089; padding:30px 0;">⏳ Loading<span class="loading-dots"></span></div>
+            <!-- Initially empty – will be populated by Firebase -->
         </div>
 
         <div class="total" id="totalDisplay">
@@ -77,8 +263,12 @@
             <span class="total-amount" id="totalAmount">€0.00</span>
         </div>
 
+        <div style="display: flex; justify-content: flex-end;">
+            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
+        </div>
+
         <div class="footnote">
-            ✨ Click ☕ to record a coffee · ⚡ Instant sync across all your devices
+            ✨ Click ☕ to record a coffee · Data syncs in real time
         </div>
     </div>
 
@@ -86,7 +276,7 @@
         (function() {
             const COFFEE_PRICE = 0.80;
 
-            // 🔴🔴🔴 REPLACE THIS WITH YOUR OWN FIREBASE CONFIG 🔴🔴🔴
+            // 🔴 REPLACE WITH YOUR OWN FIREBASE CONFIG 🔴
             const firebaseConfig = {
                 apiKey: "YOUR_API_KEY",
                 authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -103,14 +293,11 @@
                 app = firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
                 personsRef = database.ref('persons');
-                console.log('Firebase connected');
             } catch (e) {
                 console.error('Firebase connection failed:', e);
-                document.getElementById('syncStatus').innerText = '❌ Connection failed';
             }
 
             let persons = [];
-            let isLoading = true;
 
             const listContainer = document.getElementById('listContainer');
             const totalCupsSpan = document.getElementById('totalCups');
@@ -118,7 +305,6 @@
             const newNameInput = document.getElementById('newName');
             const addBtn = document.getElementById('addBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
-            const syncStatus = document.getElementById('syncStatus');
 
             function generateId() {
                 return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
@@ -173,7 +359,7 @@
                     .replace(/'/g, '&#039;');
             }
 
-            // ----- Firebase listeners (optimized) -----
+            // Firebase listeners (silent)
             if (personsRef) {
                 personsRef.on('child_added', (snapshot) => {
                     const data = snapshot.val();
@@ -183,8 +369,6 @@
                         }
                         persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                         render();
-                        syncStatus.innerText = '✅ Synced';
-                        isLoading = false;
                     }
                 });
 
@@ -199,7 +383,6 @@
                         }
                         persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                         render();
-                        syncStatus.innerText = '✅ Synced';
                     }
                 });
 
@@ -207,7 +390,6 @@
                     persons = persons.filter(p => p.id !== snapshot.key);
                     persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     render();
-                    syncStatus.innerText = '✅ Synced';
                 });
 
                 // Initial load + sample data if empty
@@ -231,11 +413,8 @@
                     }
                     persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     render();
-                    syncStatus.innerText = '✅ Connected';
-                    isLoading = false;
                 }, (error) => {
                     console.error('Firebase read error:', error);
-                    syncStatus.innerText = '❌ Sync failed';
                 });
             }
 
