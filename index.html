@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter – track your coffee & cost</title>
-    <!-- Google Font & simple styling -->
+    <title>☕ Coffee Counter – 永久保存版</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
     <style>
         * {
@@ -140,7 +139,7 @@
             padding: 4px 12px;
             border-radius: 20px;
             font-weight: 600;
-            color: #2c5f2d; /* greenish to indicate money */
+            color: #2c5f2d;
             font-size: 1rem;
             margin-left: 5px;
             white-space: nowrap;
@@ -214,13 +213,19 @@
             color: #b7a089;
             text-align: center;
         }
-        .price-tag {
+        .clear-btn {
+            background: #c44b4b;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 40px;
             font-size: 0.9rem;
-            color: #4a6b3f;
-            background: #eef4e6;
-            padding: 4px 10px;
-            border-radius: 20px;
-            margin-left: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.2s;
+        }
+        .clear-btn:hover {
+            background: #a13a3a;
         }
     </style>
 </head>
@@ -229,58 +234,91 @@
         <h1>
             <span>☕</span> Coffee Counter
         </h1>
-        <div class="subhead">Each coffee = €0.80 – add your name and start counting</div>
+        <div class="subhead">Each coffee = €0.80 – 数据会自动保存，刷新页面也不会丢失</div>
 
-        <!-- Add new person -->
         <div class="add-section">
             <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
             <button id="addBtn">➕ Add</button>
         </div>
 
-        <!-- List of coffee drinkers -->
         <div id="listContainer" class="counter-list">
-            <!-- dynamic content will be injected here -->
+            <!-- 动态内容会显示在这里 -->
         </div>
 
-        <!-- Total cups & total cost -->
         <div class="total" id="totalDisplay">
             <span>Total cups <span id="totalCups">0</span></span>
             <span class="total-amount" id="totalAmount">€0.00</span>
         </div>
 
-        <div class="footnote">
-            ✨ Click the ☕ button to record a coffee (€0.80). Use the ✖ button to remove a person.
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <div class="footnote" style="margin-top: 0;">
+                ✨ 点击 ☕ 记录一杯咖啡 (€0.80) · 数据自动保存
+            </div>
+            <button class="clear-btn" id="clearAllBtn">🗑️ 清除所有数据</button>
         </div>
     </div>
 
     <script>
         (function() {
-            const COFFEE_PRICE = 0.80; // euro per cup
+            const COFFEE_PRICE = 0.80;
 
-            // --- Data (array of persons) ---
-            let persons = [];  // each element: { id, name, count }
-
-            // Helper to generate a random ID
+            // 生成唯一ID
             function generateId() {
                 return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             }
 
-            // --- DOM elements ---
+            // 数据数组
+            let persons = [];
+
+            // ----- localStorage 操作函数 -----
+            function saveToLocalStorage() {
+                try {
+                    localStorage.setItem('coffeePersons', JSON.stringify(persons));
+                    console.log('数据已保存', persons); // 调试用
+                } catch (e) {
+                    console.error('保存失败', e);
+                }
+            }
+
+            function loadFromLocalStorage() {
+                try {
+                    const saved = localStorage.getItem('coffeePersons');
+                    if (saved) {
+                        persons = JSON.parse(saved);
+                        console.log('已加载保存的数据', persons); // 调试用
+                    } else {
+                        // 首次使用，添加示例数据
+                        persons = [
+                            { id: generateId(), name: 'Alex', count: 2 },
+                            { id: generateId(), name: 'Jamie', count: 1 }
+                        ];
+                        console.log('首次使用，创建示例数据'); // 调试用
+                    }
+                } catch (e) {
+                    console.error('加载失败', e);
+                    persons = [];
+                }
+            }
+            // --------------------------------
+
+            // DOM 元素
             const listContainer = document.getElementById('listContainer');
             const totalCupsSpan = document.getElementById('totalCups');
             const totalAmountSpan = document.getElementById('totalAmount');
             const newNameInput = document.getElementById('newName');
             const addBtn = document.getElementById('addBtn');
+            const clearAllBtn = document.getElementById('clearAllBtn');
 
-            // --- Render the list and totals ---
+            // 渲染函数
             function render() {
                 if (!listContainer) return;
 
-                // If no persons, show an empty message
-                if (persons.length === 0) {
+                // 如果没有人，显示空状态
+                if (!persons || persons.length === 0) {
                     listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
                     totalCupsSpan.innerText = '0';
                     totalAmountSpan.innerText = '€0.00';
+                    saveToLocalStorage(); // 保存空状态
                     return;
                 }
 
@@ -288,21 +326,25 @@
                 let totalCups = 0;
 
                 persons.forEach(person => {
+                    // 确保每个person都有必要的属性
+                    if (!person.count) person.count = 0;
+                    if (!person.id) person.id = generateId();
+                    
                     totalCups += person.count;
                     const amount = person.count * COFFEE_PRICE;
-                    // Get initials for avatar
                     const initial = person.name ? person.name.charAt(0).toUpperCase() : '?';
+                    
                     html += `
                         <div class="person-item" data-id="${person.id}">
                             <div class="person-info">
-                                <div class="avatar">${initial}</div>
-                                <span class="name">${escapeHtml(person.name)}</span>
+                                <div class="avatar">${escapeHtml(initial)}</div>
+                                <span class="name">${escapeHtml(person.name || 'Unknown')}</span>
                                 <span class="count-badge">${person.count} cup${person.count !== 1 ? 's' : ''}</span>
                                 <span class="amount">€${amount.toFixed(2)}</span>
                             </div>
                             <div class="actions">
-                                <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')" title="Had a coffee!">☕</button>
-                                <button class="delete-btn" onclick="window.deletePerson('${person.id}')" title="Remove person">✖</button>
+                                <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')" title="喝了一杯咖啡">☕</button>
+                                <button class="delete-btn" onclick="window.deletePerson('${person.id}')" title="移除这个人">✖</button>
                             </div>
                         </div>
                     `;
@@ -310,43 +352,51 @@
 
                 listContainer.innerHTML = html;
                 totalCupsSpan.innerText = totalCups;
-                const totalAmount = totalCups * COFFEE_PRICE;
-                totalAmountSpan.innerText = '€' + totalAmount.toFixed(2);
+                totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
+                
+                // 渲染完成后保存数据
+                saveToLocalStorage();
             }
 
-            // Simple escape to avoid XSS
+            // HTML转义（防止XSS）
             function escapeHtml(unsafe) {
-                return unsafe.replace(/[&<>"']/g, function(m) {
-                    if(m === '&') return '&amp;';
-                    if(m === '<') return '&lt;';
-                    if(m === '>') return '&gt;';
-                    if(m === '"') return '&quot;';
-                    if(m === "'") return '&#039;';
-                    return m;
-                });
+                if (!unsafe) return '';
+                return unsafe.toString()
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
             }
 
-            // --- Actions (exposed to global for onclick) ---
+            // 全局函数：增加咖啡计数
             window.incrementCoffee = function(id) {
                 const person = persons.find(p => p.id === id);
                 if (person) {
-                    person.count += 1;
+                    person.count = (person.count || 0) + 1;
                     render();
                 }
             };
 
+            // 全局函数：删除一个人
             window.deletePerson = function(id) {
                 persons = persons.filter(p => p.id !== id);
                 render();
             };
 
-            // --- Add new person ---
+            // 添加新人
             addBtn.addEventListener('click', function() {
                 const rawName = newNameInput.value.trim();
                 if (rawName === '') {
                     alert('Please enter a name.');
                     return;
                 }
+
+                // 检查是否重名（可选）
+                // if (persons.some(p => p.name.toLowerCase() === rawName.toLowerCase())) {
+                //     alert('这个名字已经存在，请用不同的名字');
+                //     return;
+                // }
 
                 const newPerson = {
                     id: generateId(),
@@ -355,29 +405,33 @@
                 };
                 persons.push(newPerson);
                 render();
-                newNameInput.value = '';  // clear input
+                newNameInput.value = '';
                 newNameInput.focus();
             });
 
-            // Allow Enter key in input
+            // 回车键添加
             newNameInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     addBtn.click();
                 }
             });
 
-            // Initial render with example data
-            persons.push({
-                id: generateId(),
-                name: 'Alex',
-                count: 2
-            });
-            persons.push({
-                id: generateId(),
-                name: 'Jamie',
-                count: 1
-            });
+            // 清除所有数据按钮
+            if (clearAllBtn) {
+                clearAllBtn.addEventListener('click', function() {
+                    if (confirm('确定要清除所有数据吗？')) {
+                        persons = [];
+                        render();
+                    }
+                });
+            }
+
+            // ----- 初始化：从localStorage加载数据 -----
+            loadFromLocalStorage();
             render();
+            
+            // 在控制台打印帮助信息
+            console.log('Coffee Counter 已启动！数据会自动保存。');
         })();
     </script>
 </body>
