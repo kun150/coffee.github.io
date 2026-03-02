@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☕ Coffee Counter – track your coffee & cost</title>
+    <!-- Google Font & simple styling -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+        body {
+            background: #f9f5f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 650px;
+            width: 100%;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
+            padding: 32px;
+        }
+        h1 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            font-size: 2rem;
+            color: #3b2b1f;
+            margin-bottom: 8px;
+        }
+        h1 span {
+            font-size: 2.5rem;
+        }
+        .subhead {
+            color: #7b5e4a;
+            margin-bottom: 28px;
+            border-left: 4px solid #b98a6b;
+            padding-left: 16px;
+            font-weight: 400;
+        }
+        .add-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+        .add-section input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e8d9cc;
+            border-radius: 50px;
+            font-size: 1rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .add-section input:focus {
+            border-color: #b98a6b;
+        }
+        .add-section button {
+            background: #6f4e37;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .add-section button:hover {
+            background: #5a3f2c;
+            transform: scale(1.02);
+        }
+        .counter-list {
+            margin: 24px 0;
+        }
+        .person-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fefcf9;
+            padding: 12px 18px;
+            border-radius: 40px;
+            margin-bottom: 10px;
+            border: 1px solid #f0e5dc;
+            transition: 0.2s;
+        }
+        .person-item:hover {
+            border-color: #dbbc9f;
+            background: #fff9f3;
+        }
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .avatar {
+            width: 44px;
+            height: 44px;
+            background: #dbbc9f;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+        .name {
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #3b2b1f;
+        }
+        .count-badge {
+            background: #f0e5dc;
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            color: #6f4e37;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .amount {
+            background: #e2d5ca;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            color: #2c5f2d; /* greenish to indicate money */
+            font-size: 1rem;
+            margin-left: 5px;
+            white-space: nowrap;
+        }
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+        .coffee-btn {
+            background: #b98a6b;
+            color: white;
+            border: none;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            box-shadow: 0 4px 8px rgba(185,138,107,0.3);
+        }
+        .coffee-btn:hover {
+            background: #9e6f50;
+            transform: scale(1.1);
+        }
+        .delete-btn {
+            background: transparent;
+            color: #c4a084;
+            border: 2px solid #e8d9cc;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .delete-btn:hover {
+            background: #fbe9e7;
+            color: #b85c5c;
+            border-color: #b85c5c;
+        }
+        .total {
+            text-align: right;
+            padding: 16px 8px 0;
+            border-top: 2px dashed #e8d9cc;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #3b2b1f;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .total span {
+            color: #6f4e37;
+            font-size: 2rem;
+            margin-left: 10px;
+        }
+        .total-amount {
+            background: #6f4e37;
+            color: white;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 1.3rem;
+            font-weight: 500;
+        }
+        .footnote {
+            margin-top: 30px;
+            font-size: 0.85rem;
+            color: #b7a089;
+            text-align: center;
+        }
+        .price-tag {
+            font-size: 0.9rem;
+            color: #4a6b3f;
+            background: #eef4e6;
+            padding: 4px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>
+            <span>☕</span> Coffee Counter
+        </h1>
+        <div class="subhead">Each coffee = €0.80 – add your name and start counting</div>
+
+        <!-- Add new person -->
+        <div class="add-section">
+            <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
+            <button id="addBtn">➕ Add</button>
+        </div>
+
+        <!-- List of coffee drinkers -->
+        <div id="listContainer" class="counter-list">
+            <!-- dynamic content will be injected here -->
+        </div>
+
+        <!-- Total cups & total cost -->
+        <div class="total" id="totalDisplay">
+            <span>Total cups <span id="totalCups">0</span></span>
+            <span class="total-amount" id="totalAmount">€0.00</span>
+        </div>
+
+        <div class="footnote">
+            ✨ Click the ☕ button to record a coffee (€0.80). Use the ✖ button to remove a person.
+        </div>
+    </div>
+
+    <script>
+        (function() {
+            const COFFEE_PRICE = 0.80; // euro per cup
+
+            // --- Data (array of persons) ---
+            let persons = [];  // each element: { id, name, count }
+
+            // Helper to generate a random ID
+            function generateId() {
+                return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            }
+
+            // --- DOM elements ---
+            const listContainer = document.getElementById('listContainer');
+            const totalCupsSpan = document.getElementById('totalCups');
+            const totalAmountSpan = document.getElementById('totalAmount');
+            const newNameInput = document.getElementById('newName');
+            const addBtn = document.getElementById('addBtn');
+
+            // --- Render the list and totals ---
+            function render() {
+                if (!listContainer) return;
+
+                // If no persons, show an empty message
+                if (persons.length === 0) {
+                    listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
+                    totalCupsSpan.innerText = '0';
+                    totalAmountSpan.innerText = '€0.00';
+                    return;
+                }
+
+                let html = '';
+                let totalCups = 0;
+
+                persons.forEach(person => {
+                    totalCups += person.count;
+                    const amount = person.count * COFFEE_PRICE;
+                    // Get initials for avatar
+                    const initial = person.name ? person.name.charAt(0).toUpperCase() : '?';
+                    html += `
+                        <div class="person-item" data-id="${person.id}">
+                            <div class="person-info">
+                                <div class="avatar">${initial}</div>
+                                <span class="name">${escapeHtml(person.name)}</span>
+                                <span class="count-badge">${person.count} cup${person.count !== 1 ? 's' : ''}</span>
+                                <span class="amount">€${amount.toFixed(2)}</span>
+                            </div>
+                            <div class="actions">
+                                <button class="coffee-btn" onclick="window.incrementCoffee('${person.id}')" title="Had a coffee!">☕</button>
+                                <button class="delete-btn" onclick="window.deletePerson('${person.id}')" title="Remove person">✖</button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                listContainer.innerHTML = html;
+                totalCupsSpan.innerText = totalCups;
+                const totalAmount = totalCups * COFFEE_PRICE;
+                totalAmountSpan.innerText = '€' + totalAmount.toFixed(2);
+            }
+
+            // Simple escape to avoid XSS
+            function escapeHtml(unsafe) {
+                return unsafe.replace(/[&<>"']/g, function(m) {
+                    if(m === '&') return '&amp;';
+                    if(m === '<') return '&lt;';
+                    if(m === '>') return '&gt;';
+                    if(m === '"') return '&quot;';
+                    if(m === "'") return '&#039;';
+                    return m;
+                });
+            }
+
+            // --- Actions (exposed to global for onclick) ---
+            window.incrementCoffee = function(id) {
+                const person = persons.find(p => p.id === id);
+                if (person) {
+                    person.count += 1;
+                    render();
+                }
+            };
+
+            window.deletePerson = function(id) {
+                persons = persons.filter(p => p.id !== id);
+                render();
+            };
+
+            // --- Add new person ---
+            addBtn.addEventListener('click', function() {
+                const rawName = newNameInput.value.trim();
+                if (rawName === '') {
+                    alert('Please enter a name.');
+                    return;
+                }
+
+                const newPerson = {
+                    id: generateId(),
+                    name: rawName,
+                    count: 0
+                };
+                persons.push(newPerson);
+                render();
+                newNameInput.value = '';  // clear input
+                newNameInput.focus();
+            });
+
+            // Allow Enter key in input
+            newNameInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    addBtn.click();
+                }
+            });
+
+            // Initial render with example data
+            persons.push({
+                id: generateId(),
+                name: 'Alex',
+                count: 2
+            });
+            persons.push({
+                id: generateId(),
+                name: 'Jamie',
+                count: 1
+            });
+            render();
+        })();
+    </script>
+</body>
+</html>
