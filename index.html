@@ -9,270 +9,45 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-        body {
-            background: #f9f5f0;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-        .card {
-            max-width: 650px;
-            width: 100%;
-            background: white;
-            border-radius: 32px;
-            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
-            padding: 32px;
-        }
-        h1 {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 600;
-            font-size: 2rem;
-            color: #3b2b1f;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        h1 span {
-            font-size: 2.5rem;
-        }
-        .sync-badge {
-            background: #4a6f44;
-            color: white;
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 30px;
-            margin-left: 15px;
-            display: inline-block;
-            vertical-align: middle;
-        }
-        .subhead {
-            color: #7b5e4a;
-            margin-bottom: 28px;
-            border-left: 4px solid #b98a6b;
-            padding-left: 16px;
-            font-weight: 400;
-        }
-        .add-section {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 32px;
-        }
-        .add-section input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid #e8d9cc;
-            border-radius: 50px;
-            font-size: 1rem;
-            outline: none;
-            transition: 0.2s;
-        }
-        .add-section input:focus {
-            border-color: #b98a6b;
-        }
-        .add-section button {
-            background: #6f4e37;
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-        .add-section button:hover {
-            background: #5a3f2c;
-            transform: scale(1.02);
-        }
-        .counter-list {
-            margin: 24px 0;
-        }
-        .person-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: #fefcf9;
-            padding: 12px 18px;
-            border-radius: 40px;
-            margin-bottom: 10px;
-            border: 1px solid #f0e5dc;
-            transition: 0.2s;
-        }
-        .person-item:hover {
-            border-color: #dbbc9f;
-            background: #fff9f3;
-        }
-        .person-info {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        .avatar {
-            width: 44px;
-            height: 44px;
-            background: #dbbc9f;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1.2rem;
-            text-transform: uppercase;
-        }
-        .name {
-            font-weight: 600;
-            font-size: 1.2rem;
-            color: #3b2b1f;
-        }
-        .count-badge {
-            background: #f0e5dc;
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            color: #6f4e37;
-            margin-left: 10px;
-            white-space: nowrap;
-        }
-        .amount {
-            background: #e2d5ca;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-weight: 600;
-            color: #2c5f2d;
-            font-size: 1rem;
-            margin-left: 5px;
-            white-space: nowrap;
-        }
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-        .coffee-btn {
-            background: #b98a6b;
-            color: white;
-            border: none;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 1.4rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: 0.1s; /* Faster hover response */
-            box-shadow: 0 4px 8px rgba(185,138,107,0.3);
-        }
-        .coffee-btn:hover {
-            background: #9e6f50;
-            transform: scale(1.1);
-        }
-        .coffee-btn:active {
-            transform: scale(0.95); /* Click feedback */
-        }
-        .delete-btn {
-            background: transparent;
-            color: #c4a084;
-            border: 2px solid #e8d9cc;
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .delete-btn:hover {
-            background: #fbe9e7;
-            color: #b85c5c;
-            border-color: #b85c5c;
-        }
-        .delete-btn:active {
-            transform: scale(0.95);
-        }
-        .total {
-            text-align: right;
-            padding: 16px 8px 0;
-            border-top: 2px dashed #e8d9cc;
-            font-size: 1.4rem;
-            font-weight: 600;
-            color: #3b2b1f;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .total span {
-            color: #6f4e37;
-            font-size: 2rem;
-            margin-left: 10px;
-        }
-        .total-amount {
-            background: #6f4e37;
-            color: white;
-            padding: 8px 18px;
-            border-radius: 40px;
-            font-size: 1.3rem;
-            font-weight: 500;
-        }
-        .footnote {
-            margin-top: 30px;
-            font-size: 0.85rem;
-            color: #b7a089;
-            text-align: center;
-        }
-        .status-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            font-size: 0.85rem;
-        }
-        .sync-status {
-            color: #4a6f44;
-            background: #e6f0e4;
-            padding: 4px 12px;
-            border-radius: 30px;
-        }
-        .clear-btn {
-            background: #c44b4b;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 40px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .clear-btn:hover {
-            background: #a13a3a;
-        }
-        .clear-btn:active {
-            transform: scale(0.95);
-        }
-        /* Loading animation */
-        .loading-dots:after {
-            content: '.';
-            animation: dots 1.5s steps(5, end) infinite;
-        }
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60% { content: '...'; }
-            80%, 100% { content: ''; }
-        }
+        /* (same styles as before – keep them) */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #f9f5f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .card { max-width: 650px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); padding: 32px; }
+        h1 { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 2rem; color: #3b2b1f; margin-bottom: 8px; flex-wrap: wrap; }
+        h1 span { font-size: 2.5rem; }
+        .sync-badge { background: #4a6f44; color: white; font-size: 0.75rem; padding: 4px 10px; border-radius: 30px; margin-left: 15px; display: inline-block; vertical-align: middle; }
+        .subhead { color: #7b5e4a; margin-bottom: 28px; border-left: 4px solid #b98a6b; padding-left: 16px; font-weight: 400; }
+        .add-section { display: flex; gap: 10px; margin-bottom: 32px; }
+        .add-section input { flex: 1; padding: 14px 18px; border: 2px solid #e8d9cc; border-radius: 50px; font-size: 1rem; outline: none; transition: 0.2s; }
+        .add-section input:focus { border-color: #b98a6b; }
+        .add-section button { background: #6f4e37; color: white; border: none; padding: 14px 28px; border-radius: 50px; font-weight: 600; font-size: 1rem; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
+        .add-section button:hover { background: #5a3f2c; transform: scale(1.02); }
+        .counter-list { margin: 24px 0; }
+        .person-item { display: flex; align-items: center; justify-content: space-between; background: #fefcf9; padding: 12px 18px; border-radius: 40px; margin-bottom: 10px; border: 1px solid #f0e5dc; transition: 0.2s; }
+        .person-item:hover { border-color: #dbbc9f; background: #fff9f3; }
+        .person-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+        .avatar { width: 44px; height: 44px; background: #dbbc9f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 1.2rem; text-transform: uppercase; }
+        .name { font-weight: 600; font-size: 1.2rem; color: #3b2b1f; }
+        .count-badge { background: #f0e5dc; padding: 6px 14px; border-radius: 30px; font-weight: 700; color: #6f4e37; margin-left: 10px; white-space: nowrap; }
+        .amount { background: #e2d5ca; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #2c5f2d; font-size: 1rem; margin-left: 5px; white-space: nowrap; }
+        .actions { display: flex; gap: 8px; }
+        .coffee-btn { background: #b98a6b; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.1s; box-shadow: 0 4px 8px rgba(185,138,107,0.3); }
+        .coffee-btn:hover { background: #9e6f50; transform: scale(1.1); }
+        .coffee-btn:active { transform: scale(0.95); }
+        .delete-btn { background: transparent; color: #c4a084; border: 2px solid #e8d9cc; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: 0.1s; }
+        .delete-btn:hover { background: #fbe9e7; color: #b85c5c; border-color: #b85c5c; }
+        .delete-btn:active { transform: scale(0.95); }
+        .total { text-align: right; padding: 16px 8px 0; border-top: 2px dashed #e8d9cc; font-size: 1.4rem; font-weight: 600; color: #3b2b1f; display: flex; justify-content: space-between; align-items: center; }
+        .total span { color: #6f4e37; font-size: 2rem; margin-left: 10px; }
+        .total-amount { background: #6f4e37; color: white; padding: 8px 18px; border-radius: 40px; font-size: 1.3rem; font-weight: 500; }
+        .footnote { margin-top: 30px; font-size: 0.85rem; color: #b7a089; text-align: center; }
+        .status-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 0.85rem; }
+        .sync-status { color: #4a6f44; background: #e6f0e4; padding: 4px 12px; border-radius: 30px; }
+        .clear-btn { background: #c44b4b; color: white; border: none; padding: 8px 16px; border-radius: 40px; font-size: 0.9rem; cursor: pointer; transition: 0.1s; }
+        .clear-btn:hover { background: #a13a3a; }
+        .clear-btn:active { transform: scale(0.95); }
+        .loading-dots:after { content: '.'; animation: dots 1.5s steps(5, end) infinite; }
+        @keyframes dots { 0%,20% { content: '.'; } 40% { content: '..'; } 60% { content: '...'; } 80%,100% { content: ''; } }
     </style>
 </head>
 <body>
@@ -294,7 +69,6 @@
         </div>
 
         <div id="listContainer" class="counter-list">
-            <!-- Dynamic content appears here -->
             <div style="text-align:center; color:#b7a089; padding:30px 0;">⏳ Loading<span class="loading-dots"></span></div>
         </div>
 
@@ -312,35 +86,32 @@
         (function() {
             const COFFEE_PRICE = 0.80;
 
-            // Firebase configuration with optimized settings
+            // 🔴🔴🔴 REPLACE THIS WITH YOUR OWN FIREBASE CONFIG 🔴🔴🔴
             const firebaseConfig = {
-                apiKey: "AIzaSyDummyKeyForDemoPurposesOnly",
-                authDomain: "coffee-counter-demo.firebaseapp.com",
-                databaseURL: "https://coffee-counter-demo-default-rtdb.firebaseio.com",
-                projectId: "coffee-counter-demo",
-                storageBucket: "coffee-counter-demo.appspot.com",
-                messagingSenderId: "123456789012",
-                appId: "1:123456789012:web:abc123def456"
+                apiKey: "YOUR_API_KEY",
+                authDomain: "YOUR_PROJECT.firebaseapp.com",
+                databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+                projectId: "YOUR_PROJECT_ID",
+                storageBucket: "YOUR_PROJECT.appspot.com",
+                messagingSenderId: "YOUR_SENDER_ID",
+                appId: "YOUR_APP_ID"
             };
 
-            // Initialize Firebase with optimized settings
+            // Initialize Firebase
             let app, database, personsRef;
             try {
                 app = firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
-                // Enable offline persistence for faster local updates
-                database.goOnline();
                 personsRef = database.ref('persons');
                 console.log('Firebase connected');
             } catch (e) {
                 console.error('Firebase connection failed:', e);
+                document.getElementById('syncStatus').innerText = '❌ Connection failed';
             }
 
-            // Local data cache
             let persons = [];
             let isLoading = true;
 
-            // DOM elements
             const listContainer = document.getElementById('listContainer');
             const totalCupsSpan = document.getElementById('totalCups');
             const totalAmountSpan = document.getElementById('totalAmount');
@@ -349,12 +120,10 @@
             const clearAllBtn = document.getElementById('clearAllBtn');
             const syncStatus = document.getElementById('syncStatus');
 
-            // Generate unique ID (timestamp + random)
             function generateId() {
                 return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             }
 
-            // Ultra-fast render - only updates changed elements
             function render() {
                 if (!listContainer) return;
 
@@ -394,7 +163,6 @@
                 totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
             }
 
-            // HTML escape
             function escapeHtml(unsafe) {
                 if (!unsafe) return '';
                 return unsafe.toString()
@@ -405,23 +173,14 @@
                     .replace(/'/g, '&#039;');
             }
 
-            // ----- OPTIMIZED: Firebase listener with local-first updates -----
+            // ----- Firebase listeners (optimized) -----
             if (personsRef) {
-                // Listen for child_added (new persons)
                 personsRef.on('child_added', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        const newPerson = {
-                            id: snapshot.key,
-                            ...data
-                        };
-                        
-                        // Check if person already exists (avoid duplicates)
                         if (!persons.find(p => p.id === snapshot.key)) {
-                            persons.push(newPerson);
+                            persons.push({ id: snapshot.key, ...data });
                         }
-                        
-                        // Sort by name for consistent display
                         persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                         render();
                         syncStatus.innerText = '✅ Synced';
@@ -429,30 +188,21 @@
                     }
                 });
 
-                // Listen for child_changed (coffee increments)
                 personsRef.on('child_changed', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         const index = persons.findIndex(p => p.id === snapshot.key);
                         if (index !== -1) {
-                            persons[index] = {
-                                id: snapshot.key,
-                                ...data
-                            };
+                            persons[index] = { id: snapshot.key, ...data };
                         } else {
-                            persons.push({
-                                id: snapshot.key,
-                                ...data
-                            });
+                            persons.push({ id: snapshot.key, ...data });
                         }
-                        
                         persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                         render();
                         syncStatus.innerText = '✅ Synced';
                     }
                 });
 
-                // Listen for child_removed (deletions)
                 personsRef.on('child_removed', (snapshot) => {
                     persons = persons.filter(p => p.id !== snapshot.key);
                     persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
@@ -460,23 +210,18 @@
                     syncStatus.innerText = '✅ Synced';
                 });
 
-                // Initial load
+                // Initial load + sample data if empty
                 personsRef.once('value', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        persons = Object.keys(data).map(key => ({
-                            id: key,
-                            ...data[key]
-                        }));
+                        persons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
                     } else {
-                        // No data - add sample data
+                        // Add sample data
                         const sampleData = [
                             { id: generateId(), name: 'Alex', count: 2 },
                             { id: generateId(), name: 'Jamie', count: 1 }
                         ];
                         persons = sampleData;
-                        
-                        // Save to Firebase
                         sampleData.forEach(person => {
                             personsRef.child(person.id).set({
                                 name: person.name,
@@ -484,7 +229,6 @@
                             });
                         });
                     }
-                    
                     persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     render();
                     syncStatus.innerText = '✅ Connected';
@@ -495,43 +239,26 @@
                 });
             }
 
-            // Global: increment coffee count (optimistic update)
+            // Optimistic updates
             window.incrementCoffee = function(id) {
                 const person = persons.find(p => p.id === id);
                 if (person) {
-                    // Optimistic update - increment immediately
                     person.count = (person.count || 0) + 1;
-                    
-                    // Re-sort if needed (names didn't change, so no sort needed)
                     render();
-                    
-                    // Send to Firebase (background)
                     if (personsRef) {
-                        personsRef.child(id).update({
-                            count: person.count
-                        }).catch(error => {
-                            console.error('Update failed:', error);
-                            // If update fails, revert?
-                        });
+                        personsRef.child(id).update({ count: person.count }).catch(console.error);
                     }
                 }
             };
 
-            // Global: delete a person (optimistic update)
             window.deletePerson = function(id) {
-                // Optimistic delete
                 persons = persons.filter(p => p.id !== id);
                 render();
-                
-                // Delete from Firebase (background)
                 if (personsRef) {
-                    personsRef.child(id).remove().catch(error => {
-                        console.error('Delete failed:', error);
-                    });
+                    personsRef.child(id).remove().catch(console.error);
                 }
             };
 
-            // Add new person (optimistic update)
             addBtn.addEventListener('click', function() {
                 const rawName = newNameInput.value.trim();
                 if (rawName === '') {
@@ -540,64 +267,34 @@
                 }
 
                 const newId = generateId();
-                const newPerson = {
-                    id: newId,
-                    name: rawName,
-                    count: 0
-                };
-                
-                // Optimistic add
+                const newPerson = { id: newId, name: rawName, count: 0 };
                 persons.push(newPerson);
                 persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                 render();
-                
-                // Save to Firebase (background)
+
                 if (personsRef) {
-                    personsRef.child(newId).set({
-                        name: rawName,
-                        count: 0
-                    }).catch(error => {
-                        console.error('Add failed:', error);
-                    });
+                    personsRef.child(newId).set({ name: rawName, count: 0 }).catch(console.error);
                 }
-                
+
                 newNameInput.value = '';
                 newNameInput.focus();
             });
 
-            // Enter key to add
             newNameInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    addBtn.click();
-                }
+                if (e.key === 'Enter') addBtn.click();
             });
 
-            // Clear all data
             if (clearAllBtn) {
                 clearAllBtn.addEventListener('click', function() {
                     if (confirm('Are you sure you want to clear all data? This will affect all devices.')) {
-                        // Optimistic clear
                         persons = [];
                         render();
-                        
-                        // Clear from Firebase
                         if (personsRef) {
-                            personsRef.remove().catch(error => {
-                                console.error('Clear failed:', error);
-                            });
+                            personsRef.remove().catch(console.error);
                         }
                     }
                 });
             }
-
-            // Manual connection status check
-            if (personsRef) {
-                personsRef.on('value', () => {}, (error) => {
-                    syncStatus.innerText = '❌ Connection lost';
-                });
-            }
-
-            console.log('⚡ Coffee Counter with instant sync started!');
         })();
     </script>
 </body>
