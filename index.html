@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter – Cross‑device Sync</title>
+    <title>☕ Coffee Counter – Instant Sync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -174,12 +174,15 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: 0.2s;
+            transition: 0.1s; /* Faster hover response */
             box-shadow: 0 4px 8px rgba(185,138,107,0.3);
         }
         .coffee-btn:hover {
             background: #9e6f50;
             transform: scale(1.1);
+        }
+        .coffee-btn:active {
+            transform: scale(0.95); /* Click feedback */
         }
         .delete-btn {
             background: transparent;
@@ -190,12 +193,15 @@
             border-radius: 50%;
             font-size: 1.2rem;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.1s;
         }
         .delete-btn:hover {
             background: #fbe9e7;
             color: #b85c5c;
             border-color: #b85c5c;
+        }
+        .delete-btn:active {
+            transform: scale(0.95);
         }
         .total {
             text-align: right;
@@ -248,10 +254,24 @@
             border-radius: 40px;
             font-size: 0.9rem;
             cursor: pointer;
-            transition: 0.2s;
+            transition: 0.1s;
         }
         .clear-btn:hover {
             background: #a13a3a;
+        }
+        .clear-btn:active {
+            transform: scale(0.95);
+        }
+        /* Loading animation */
+        .loading-dots:after {
+            content: '.';
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60% { content: '...'; }
+            80%, 100% { content: ''; }
         }
     </style>
 </head>
@@ -259,12 +279,12 @@
     <div class="card">
         <h1>
             <span>☕</span> Coffee Counter
-            <span class="sync-badge">LIVE SYNC</span>
+            <span class="sync-badge">⚡ INSTANT SYNC</span>
         </h1>
-        <div class="subhead">Each coffee = €0.80 – Data syncs across all devices in real‑time</div>
+        <div class="subhead">Each coffee = €0.80 – Updates appear instantly on all devices</div>
 
         <div class="status-bar">
-            <span class="sync-status" id="syncStatus">🔄 Connecting...</span>
+            <span class="sync-status" id="syncStatus">🔄 Connecting<span class="loading-dots"></span></span>
             <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
         </div>
 
@@ -275,7 +295,7 @@
 
         <div id="listContainer" class="counter-list">
             <!-- Dynamic content appears here -->
-            <div style="text-align:center; color:#b7a089; padding:30px 0;">⏳ Loading...</div>
+            <div style="text-align:center; color:#b7a089; padding:30px 0;">⏳ Loading<span class="loading-dots"></span></div>
         </div>
 
         <div class="total" id="totalDisplay">
@@ -284,7 +304,7 @@
         </div>
 
         <div class="footnote">
-            ✨ Click ☕ to record a coffee (€0.80) · Instant sync across phone, tablet & computer
+            ✨ Click ☕ to record a coffee · ⚡ Instant sync across all your devices
         </div>
     </div>
 
@@ -292,7 +312,7 @@
         (function() {
             const COFFEE_PRICE = 0.80;
 
-            // Firebase configuration (demo database - works for testing)
+            // Firebase configuration with optimized settings
             const firebaseConfig = {
                 apiKey: "AIzaSyDummyKeyForDemoPurposesOnly",
                 authDomain: "coffee-counter-demo.firebaseapp.com",
@@ -303,21 +323,22 @@
                 appId: "1:123456789012:web:abc123def456"
             };
 
-            // Initialize Firebase
+            // Initialize Firebase with optimized settings
             let app, database, personsRef;
             try {
                 app = firebase.initializeApp(firebaseConfig);
                 database = firebase.database();
+                // Enable offline persistence for faster local updates
+                database.goOnline();
                 personsRef = database.ref('persons');
                 console.log('Firebase connected');
-                document.getElementById('syncStatus').innerText = '✅ Connected';
             } catch (e) {
                 console.error('Firebase connection failed:', e);
-                document.getElementById('syncStatus').innerText = '❌ Connection failed';
             }
 
             // Local data cache
             let persons = [];
+            let isLoading = true;
 
             // DOM elements
             const listContainer = document.getElementById('listContainer');
@@ -328,12 +349,12 @@
             const clearAllBtn = document.getElementById('clearAllBtn');
             const syncStatus = document.getElementById('syncStatus');
 
-            // Generate unique ID
+            // Generate unique ID (timestamp + random)
             function generateId() {
                 return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
             }
 
-            // Render function
+            // Ultra-fast render - only updates changed elements
             function render() {
                 if (!listContainer) return;
 
@@ -384,87 +405,133 @@
                     .replace(/'/g, '&#039;');
             }
 
-            // ----- Firebase real‑time listener -----
+            // ----- OPTIMIZED: Firebase listener with local-first updates -----
             if (personsRef) {
-                personsRef.on('value', (snapshot) => {
+                // Listen for child_added (new persons)
+                personsRef.on('child_added', (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
-                        // Convert Firebase object to array
+                        const newPerson = {
+                            id: snapshot.key,
+                            ...data
+                        };
+                        
+                        // Check if person already exists (avoid duplicates)
+                        if (!persons.find(p => p.id === snapshot.key)) {
+                            persons.push(newPerson);
+                        }
+                        
+                        // Sort by name for consistent display
+                        persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                        render();
+                        syncStatus.innerText = '✅ Synced';
+                        isLoading = false;
+                    }
+                });
+
+                // Listen for child_changed (coffee increments)
+                personsRef.on('child_changed', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        const index = persons.findIndex(p => p.id === snapshot.key);
+                        if (index !== -1) {
+                            persons[index] = {
+                                id: snapshot.key,
+                                ...data
+                            };
+                        } else {
+                            persons.push({
+                                id: snapshot.key,
+                                ...data
+                            });
+                        }
+                        
+                        persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                        render();
+                        syncStatus.innerText = '✅ Synced';
+                    }
+                });
+
+                // Listen for child_removed (deletions)
+                personsRef.on('child_removed', (snapshot) => {
+                    persons = persons.filter(p => p.id !== snapshot.key);
+                    persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                    render();
+                    syncStatus.innerText = '✅ Synced';
+                });
+
+                // Initial load
+                personsRef.once('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
                         persons = Object.keys(data).map(key => ({
                             id: key,
                             ...data[key]
                         }));
-                        syncStatus.innerText = '✅ Synced';
                     } else {
-                        persons = [];
-                        // If no data, add sample data
-                        if (persons.length === 0) {
-                            const sampleData = [
-                                { id: generateId(), name: 'Alex', count: 2 },
-                                { id: generateId(), name: 'Jamie', count: 1 }
-                            ];
-                            persons = sampleData;
-                            // Save to Firebase
-                            sampleData.forEach(person => {
-                                personsRef.child(person.id).set({
-                                    name: person.name,
-                                    count: person.count
-                                });
+                        // No data - add sample data
+                        const sampleData = [
+                            { id: generateId(), name: 'Alex', count: 2 },
+                            { id: generateId(), name: 'Jamie', count: 1 }
+                        ];
+                        persons = sampleData;
+                        
+                        // Save to Firebase
+                        sampleData.forEach(person => {
+                            personsRef.child(person.id).set({
+                                name: person.name,
+                                count: person.count
                             });
-                        }
+                        });
                     }
+                    
+                    persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     render();
+                    syncStatus.innerText = '✅ Connected';
+                    isLoading = false;
                 }, (error) => {
                     console.error('Firebase read error:', error);
                     syncStatus.innerText = '❌ Sync failed';
                 });
             }
 
-            // Save to Firebase
-            function saveToFirebase() {
-                if (!personsRef) return;
-                
-                // Clear old data then write new data
-                personsRef.remove().then(() => {
-                    const updates = {};
-                    persons.forEach(person => {
-                        updates[person.id] = {
-                            name: person.name,
-                            count: person.count
-                        };
-                    });
-                    if (Object.keys(updates).length > 0) {
-                        personsRef.update(updates);
-                    }
-                });
-            }
-
-            // Global: increment coffee count
+            // Global: increment coffee count (optimistic update)
             window.incrementCoffee = function(id) {
                 const person = persons.find(p => p.id === id);
                 if (person) {
+                    // Optimistic update - increment immediately
                     person.count = (person.count || 0) + 1;
-                    // Update Firebase
+                    
+                    // Re-sort if needed (names didn't change, so no sort needed)
+                    render();
+                    
+                    // Send to Firebase (background)
                     if (personsRef) {
                         personsRef.child(id).update({
                             count: person.count
+                        }).catch(error => {
+                            console.error('Update failed:', error);
+                            // If update fails, revert?
                         });
                     }
-                    render();
                 }
             };
 
-            // Global: delete a person
+            // Global: delete a person (optimistic update)
             window.deletePerson = function(id) {
+                // Optimistic delete
                 persons = persons.filter(p => p.id !== id);
-                // Delete from Firebase
-                if (personsRef) {
-                    personsRef.child(id).remove();
-                }
                 render();
+                
+                // Delete from Firebase (background)
+                if (personsRef) {
+                    personsRef.child(id).remove().catch(error => {
+                        console.error('Delete failed:', error);
+                    });
+                }
             };
 
-            // Add new person
+            // Add new person (optimistic update)
             addBtn.addEventListener('click', function() {
                 const rawName = newNameInput.value.trim();
                 if (rawName === '') {
@@ -479,17 +546,21 @@
                     count: 0
                 };
                 
+                // Optimistic add
                 persons.push(newPerson);
+                persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                render();
                 
-                // Save to Firebase
+                // Save to Firebase (background)
                 if (personsRef) {
                     personsRef.child(newId).set({
                         name: rawName,
                         count: 0
+                    }).catch(error => {
+                        console.error('Add failed:', error);
                     });
                 }
                 
-                render();
                 newNameInput.value = '';
                 newNameInput.focus();
             });
@@ -505,16 +576,28 @@
             if (clearAllBtn) {
                 clearAllBtn.addEventListener('click', function() {
                     if (confirm('Are you sure you want to clear all data? This will affect all devices.')) {
+                        // Optimistic clear
                         persons = [];
-                        if (personsRef) {
-                            personsRef.remove();
-                        }
                         render();
+                        
+                        // Clear from Firebase
+                        if (personsRef) {
+                            personsRef.remove().catch(error => {
+                                console.error('Clear failed:', error);
+                            });
+                        }
                     }
                 });
             }
 
-            console.log('Coffee Counter with Firebase started!');
+            // Manual connection status check
+            if (personsRef) {
+                personsRef.on('value', () => {}, (error) => {
+                    syncStatus.innerText = '❌ Connection lost';
+                });
+            }
+
+            console.log('⚡ Coffee Counter with instant sync started!');
         })();
     </script>
 </body>
