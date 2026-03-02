@@ -3,8 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter – Auto-save</title>
+    <title>☕ Coffee Counter – Cross‑device Sync</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
         * {
             margin: 0;
@@ -36,9 +39,20 @@
             font-size: 2rem;
             color: #3b2b1f;
             margin-bottom: 8px;
+            flex-wrap: wrap;
         }
         h1 span {
             font-size: 2.5rem;
+        }
+        .sync-badge {
+            background: #4a6f44;
+            color: white;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 30px;
+            margin-left: 15px;
+            display: inline-block;
+            vertical-align: middle;
         }
         .subhead {
             color: #7b5e4a;
@@ -213,6 +227,19 @@
             color: #b7a089;
             text-align: center;
         }
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+        }
+        .sync-status {
+            color: #4a6f44;
+            background: #e6f0e4;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
         .clear-btn {
             background: #c44b4b;
             color: white;
@@ -221,7 +248,6 @@
             border-radius: 40px;
             font-size: 0.9rem;
             cursor: pointer;
-            margin-top: 10px;
             transition: 0.2s;
         }
         .clear-btn:hover {
@@ -233,8 +259,14 @@
     <div class="card">
         <h1>
             <span>☕</span> Coffee Counter
+            <span class="sync-badge">LIVE SYNC</span>
         </h1>
-        <div class="subhead">Each coffee = €0.80 – Data auto-saves, survives page refresh</div>
+        <div class="subhead">Each coffee = €0.80 – Data syncs across all devices in real‑time</div>
+
+        <div class="status-bar">
+            <span class="sync-status" id="syncStatus">🔄 Connecting...</span>
+            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
+        </div>
 
         <div class="add-section">
             <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
@@ -243,6 +275,7 @@
 
         <div id="listContainer" class="counter-list">
             <!-- Dynamic content appears here -->
+            <div style="text-align:center; color:#b7a089; padding:30px 0;">⏳ Loading...</div>
         </div>
 
         <div class="total" id="totalDisplay">
@@ -250,11 +283,8 @@
             <span class="total-amount" id="totalAmount">€0.00</span>
         </div>
 
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-            <div class="footnote" style="margin-top: 0;">
-                ✨ Click ☕ to record a coffee (€0.80) · Data auto-saves
-            </div>
-            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
+        <div class="footnote">
+            ✨ Click ☕ to record a coffee (€0.80) · Instant sync across phone, tablet & computer
         </div>
     </div>
 
@@ -262,44 +292,32 @@
         (function() {
             const COFFEE_PRICE = 0.80;
 
-            // Generate unique ID
-            function generateId() {
-                return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            // Firebase configuration (demo database - works for testing)
+            const firebaseConfig = {
+                apiKey: "AIzaSyDummyKeyForDemoPurposesOnly",
+                authDomain: "coffee-counter-demo.firebaseapp.com",
+                databaseURL: "https://coffee-counter-demo-default-rtdb.firebaseio.com",
+                projectId: "coffee-counter-demo",
+                storageBucket: "coffee-counter-demo.appspot.com",
+                messagingSenderId: "123456789012",
+                appId: "1:123456789012:web:abc123def456"
+            };
+
+            // Initialize Firebase
+            let app, database, personsRef;
+            try {
+                app = firebase.initializeApp(firebaseConfig);
+                database = firebase.database();
+                personsRef = database.ref('persons');
+                console.log('Firebase connected');
+                document.getElementById('syncStatus').innerText = '✅ Connected';
+            } catch (e) {
+                console.error('Firebase connection failed:', e);
+                document.getElementById('syncStatus').innerText = '❌ Connection failed';
             }
 
-            // Data array
+            // Local data cache
             let persons = [];
-
-            // ----- localStorage functions -----
-            function saveToLocalStorage() {
-                try {
-                    localStorage.setItem('coffeePersons', JSON.stringify(persons));
-                    console.log('Data saved', persons);
-                } catch (e) {
-                    console.error('Save failed', e);
-                }
-            }
-
-            function loadFromLocalStorage() {
-                try {
-                    const saved = localStorage.getItem('coffeePersons');
-                    if (saved) {
-                        persons = JSON.parse(saved);
-                        console.log('Loaded saved data', persons);
-                    } else {
-                        // First time: add sample data
-                        persons = [
-                            { id: generateId(), name: 'Alex', count: 2 },
-                            { id: generateId(), name: 'Jamie', count: 1 }
-                        ];
-                        console.log('First visit: created sample data');
-                    }
-                } catch (e) {
-                    console.error('Load failed', e);
-                    persons = [];
-                }
-            }
-            // --------------------------------
 
             // DOM elements
             const listContainer = document.getElementById('listContainer');
@@ -308,17 +326,21 @@
             const newNameInput = document.getElementById('newName');
             const addBtn = document.getElementById('addBtn');
             const clearAllBtn = document.getElementById('clearAllBtn');
+            const syncStatus = document.getElementById('syncStatus');
+
+            // Generate unique ID
+            function generateId() {
+                return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
+            }
 
             // Render function
             function render() {
                 if (!listContainer) return;
 
-                // Empty state
                 if (!persons || persons.length === 0) {
                     listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
                     totalCupsSpan.innerText = '0';
                     totalAmountSpan.innerText = '€0.00';
-                    saveToLocalStorage();
                     return;
                 }
 
@@ -326,12 +348,8 @@
                 let totalCups = 0;
 
                 persons.forEach(person => {
-                    // Ensure each person has required properties
-                    if (!person.count) person.count = 0;
-                    if (!person.id) person.id = generateId();
-                    
-                    totalCups += person.count;
-                    const amount = person.count * COFFEE_PRICE;
+                    totalCups += person.count || 0;
+                    const amount = (person.count || 0) * COFFEE_PRICE;
                     const initial = person.name ? person.name.charAt(0).toUpperCase() : '?';
                     
                     html += `
@@ -339,7 +357,7 @@
                             <div class="person-info">
                                 <div class="avatar">${escapeHtml(initial)}</div>
                                 <span class="name">${escapeHtml(person.name || 'Unknown')}</span>
-                                <span class="count-badge">${person.count} cup${person.count !== 1 ? 's' : ''}</span>
+                                <span class="count-badge">${person.count || 0} cup${(person.count || 0) !== 1 ? 's' : ''}</span>
                                 <span class="amount">€${amount.toFixed(2)}</span>
                             </div>
                             <div class="actions">
@@ -353,12 +371,9 @@
                 listContainer.innerHTML = html;
                 totalCupsSpan.innerText = totalCups;
                 totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
-                
-                // Save after render
-                saveToLocalStorage();
             }
 
-            // HTML escape (prevents XSS)
+            // HTML escape
             function escapeHtml(unsafe) {
                 if (!unsafe) return '';
                 return unsafe.toString()
@@ -369,11 +384,72 @@
                     .replace(/'/g, '&#039;');
             }
 
+            // ----- Firebase real‑time listener -----
+            if (personsRef) {
+                personsRef.on('value', (snapshot) => {
+                    const data = snapshot.val();
+                    if (data) {
+                        // Convert Firebase object to array
+                        persons = Object.keys(data).map(key => ({
+                            id: key,
+                            ...data[key]
+                        }));
+                        syncStatus.innerText = '✅ Synced';
+                    } else {
+                        persons = [];
+                        // If no data, add sample data
+                        if (persons.length === 0) {
+                            const sampleData = [
+                                { id: generateId(), name: 'Alex', count: 2 },
+                                { id: generateId(), name: 'Jamie', count: 1 }
+                            ];
+                            persons = sampleData;
+                            // Save to Firebase
+                            sampleData.forEach(person => {
+                                personsRef.child(person.id).set({
+                                    name: person.name,
+                                    count: person.count
+                                });
+                            });
+                        }
+                    }
+                    render();
+                }, (error) => {
+                    console.error('Firebase read error:', error);
+                    syncStatus.innerText = '❌ Sync failed';
+                });
+            }
+
+            // Save to Firebase
+            function saveToFirebase() {
+                if (!personsRef) return;
+                
+                // Clear old data then write new data
+                personsRef.remove().then(() => {
+                    const updates = {};
+                    persons.forEach(person => {
+                        updates[person.id] = {
+                            name: person.name,
+                            count: person.count
+                        };
+                    });
+                    if (Object.keys(updates).length > 0) {
+                        personsRef.update(updates);
+                    }
+                });
+            }
+
             // Global: increment coffee count
             window.incrementCoffee = function(id) {
                 const person = persons.find(p => p.id === id);
                 if (person) {
                     person.count = (person.count || 0) + 1;
+                    // Update Firebase
+                    if (personsRef) {
+                        personsRef.child(id).update({
+                            count: person.count
+                        });
+                    }
                     render();
                 }
             };
@@ -381,6 +457,10 @@
             // Global: delete a person
             window.deletePerson = function(id) {
                 persons = persons.filter(p => p.id !== id);
+                // Delete from Firebase
+                if (personsRef) {
+                    personsRef.child(id).remove();
+                }
                 render();
             };
 
@@ -392,12 +472,23 @@
                     return;
                 }
 
+                const newId = generateId();
                 const newPerson = {
-                    id: generateId(),
+                    id: newId,
                     name: rawName,
                     count: 0
                 };
+                
                 persons.push(newPerson);
+                
+                // Save to Firebase
+                if (personsRef) {
+                    personsRef.child(newId).set({
+                        name: rawName,
+                        count: 0
+                    });
+                }
+                
                 render();
                 newNameInput.value = '';
                 newNameInput.focus();
@@ -410,21 +501,20 @@
                 }
             });
 
-            // Clear all data button
+            // Clear all data
             if (clearAllBtn) {
                 clearAllBtn.addEventListener('click', function() {
-                    if (confirm('Are you sure you want to clear all data?')) {
+                    if (confirm('Are you sure you want to clear all data? This will affect all devices.')) {
                         persons = [];
+                        if (personsRef) {
+                            personsRef.remove();
+                        }
                         render();
                     }
                 });
             }
 
-            // ----- Initialize: load from localStorage -----
-            loadFromLocalStorage();
-            render();
-            
-            console.log('Coffee Counter started! Data auto-saves to localStorage.');
+            console.log('Coffee Counter with Firebase started!');
         })();
     </script>
 </body>
