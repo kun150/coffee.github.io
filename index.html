@@ -36,15 +36,13 @@
         .total { display: flex; justify-content: space-between; align-items: center; padding: 16px 8px 0; border-top: 2px dashed #e8d9cc; font-size: 1.4rem; font-weight: 600; color: #3b2b1f; }
         .total span { color: #6f4e37; font-size: 2rem; margin-left: 10px; }
         .total-amount { background: #6f4e37; color: white; padding: 8px 18px; border-radius: 40px; }
-        .clear-btn { background: #c44b4b; color: white; border: none; padding: 8px 16px; border-radius: 40px; cursor: pointer; margin-top: 10px; }
-        .clear-btn:hover { background: #a13a3a; }
-        .footnote { margin-top: 20px; font-size: 0.85rem; color: #b7a089; text-align: center; }
+        .footnote { margin-top: 30px; font-size: 0.85rem; color: #b7a089; text-align: center; }
     </style>
 </head>
 <body>
     <div class="card">
         <h1><span>☕</span> Coffee Counter</h1>
-        <div class="subhead">Each coffee = €0.80 – Syncs across all devices</div>
+        <div class="subhead">Each coffee = €0.80</div>
 
         <div class="add-section">
             <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
@@ -58,21 +56,17 @@
             <span class="total-amount" id="totalAmount">€0.00</span>
         </div>
 
-        <div style="display: flex; justify-content: flex-end;">
-            <button class="clear-btn" id="clearAllBtn">🗑️ Clear All</button>
-        </div>
-
-        <div class="footnote">✨ Click ☕ to record a coffee · Data syncs in real time</div>
+        <div class="footnote">✨ Click ☕ to record a coffee (€0.80 per cup)</div>
     </div>
 
     <script>
         const COFFEE_PRICE = 0.80;
 
-        // ✅ 您的 Firebase 配置（已更新）
+        // ✅ Your Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyCNtZU7j67p0cQTo7iAukz3bUQVuhQyoiE",
             authDomain: "coffee-f9eb7.firebaseapp.com",
-            databaseURL: "https://coffee-f9eb7-default-rtdb.firebaseio.com",  // 已为您添加，请确认是否正确
+            databaseURL: "https://coffee-f9eb7-default-rtdb.firebaseio.com",
             projectId: "coffee-f9eb7",
             storageBucket: "coffee-f9eb7.firebasestorage.app",
             messagingSenderId: "593795119781",
@@ -80,7 +74,7 @@
             measurementId: "G-5086DHM0LG"
         };
 
-        // 初始化 Firebase
+        // Initialize Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const personsRef = database.ref('persons');
@@ -92,7 +86,6 @@
         const totalAmountSpan = document.getElementById('totalAmount');
         const newNameInput = document.getElementById('newName');
         const addBtn = document.getElementById('addBtn');
-        const clearAllBtn = document.getElementById('clearAllBtn');
 
         function generateId() {
             return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
@@ -141,7 +134,7 @@
             totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
         }
 
-        // Firebase 监听
+        // Firebase listeners
         personsRef.on('child_added', (snapshot) => {
             const data = snapshot.val();
             if (data && !persons.find(p => p.id === snapshot.key)) {
@@ -165,7 +158,7 @@
             render();
         });
 
-        // 初次加载，如果没有数据则添加示例
+        // Initial load, add samples if empty
         personsRef.once('value', (snapshot) => {
             const data = snapshot.val();
             if (data) {
@@ -182,7 +175,7 @@
             render();
         });
 
-        // 全局函数供按钮点击
+        // Global functions for button clicks
         window.incrementCoffee = (id) => {
             const person = persons.find(p => p.id === id);
             if (person) {
@@ -212,14 +205,6 @@
 
         newNameInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') addBtn.click();
-        });
-
-        clearAllBtn.addEventListener('click', () => {
-            if (confirm('Clear all data? This affects all devices.')) {
-                persons = [];
-                render();
-                personsRef.remove();
-            }
         });
     </script>
 </body>
