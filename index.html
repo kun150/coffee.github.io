@@ -3,66 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>☕ Coffee Counter</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz@14..32&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
+    <title>☕ Coffee Counter (Simplified)</title>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #f9f5f0; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-        .card { max-width: 650px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15); padding: 32px; }
-        h1 { display: flex; align-items: center; gap: 10px; font-size: 2rem; color: #3b2b1f; margin-bottom: 8px; }
-        h1 span { font-size: 2.5rem; }
-        .subhead { color: #7b5e4a; margin-bottom: 28px; border-left: 4px solid #b98a6b; padding-left: 16px; }
-        .add-section { display: flex; gap: 10px; margin-bottom: 32px; }
-        .add-section input { flex: 1; padding: 14px 18px; border: 2px solid #e8d9cc; border-radius: 50px; font-size: 1rem; outline: none; }
-        .add-section input:focus { border-color: #b98a6b; }
-        .add-section button { background: #6f4e37; color: white; border: none; padding: 14px 28px; border-radius: 50px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; }
-        .add-section button:hover { background: #5a3f2c; }
-        .counter-list { margin: 24px 0; }
-        .person-item { display: flex; align-items: center; justify-content: space-between; background: #fefcf9; padding: 12px 18px; border-radius: 40px; margin-bottom: 10px; border: 1px solid #f0e5dc; }
-        .person-item:hover { border-color: #dbbc9f; }
-        .person-info { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
-        .avatar { width: 44px; height: 44px; background: #dbbc9f; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; text-transform: uppercase; }
-        .name { font-weight: 600; font-size: 1.2rem; color: #3b2b1f; }
-        .count-badge { background: #f0e5dc; padding: 6px 14px; border-radius: 30px; font-weight: 700; color: #6f4e37; }
-        .amount { background: #e2d5ca; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #2c5f2d; }
-        .actions { display: flex; gap: 8px; }
-        .coffee-btn { background: #b98a6b; color: white; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(185,138,107,0.3); }
-        .coffee-btn:hover { background: #9e6f50; transform: scale(1.1); }
-        .delete-btn { background: transparent; color: #c4a084; border: 2px solid #e8d9cc; width: 44px; height: 44px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; }
-        .delete-btn:hover { background: #fbe9e7; color: #b85c5c; border-color: #b85c5c; }
-        .total { display: flex; justify-content: space-between; align-items: center; padding: 16px 8px 0; border-top: 2px dashed #e8d9cc; font-size: 1.4rem; font-weight: 600; color: #3b2b1f; }
-        .total span { color: #6f4e37; font-size: 2rem; margin-left: 10px; }
-        .total-amount { background: #6f4e37; color: white; padding: 8px 18px; border-radius: 40px; }
-        .footnote { margin-top: 30px; font-size: 0.85rem; color: #b7a089; text-align: center; }
+        body { font-family: Arial, sans-serif; max-width: 500px; margin: 50px auto; padding: 20px; background: #f5f5f5; }
+        .card { background: white; border-radius: 10px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        input, button { padding: 10px; margin: 5px; font-size: 16px; }
+        .person { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .count { background: #e0e0e0; padding: 5px 10px; border-radius: 20px; }
+        button { cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h1><span>☕</span> Coffee Counter</h1>
-        <div class="subhead">Each coffee = €0.80</div>
-
-        <div class="add-section">
-            <input type="text" id="newName" placeholder="Your name (e.g. Alex)" autocomplete="off">
-            <button id="addBtn">➕ Add Person</button>
+        <h1>☕ Coffee Counter</h1>
+        
+        <div>
+            <input type="text" id="nameInput" placeholder="Enter name">
+            <button onclick="addPerson()">Add Person</button>
         </div>
 
-        <div id="listContainer" class="counter-list"></div>
-
-        <div class="total">
-            <span>Total cups <span id="totalCups">0</span></span>
-            <span class="total-amount" id="totalAmount">€0.00</span>
-        </div>
-
-        <div class="footnote">✨ Click ☕ to record a coffee (€0.80 per cup)</div>
+        <div id="personList"></div>
+        
+        <div id="total">Total cups: 0</div>
     </div>
 
     <script>
-        const COFFEE_PRICE = 0.80;
-
-        // ✅ Your Firebase configuration
+        // 你的 Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyCNtZU7j67p0cQTo7iAukz3bUQVuhQyoiE",
             authDomain: "coffee-f9eb7.firebaseapp.com",
@@ -70,141 +38,106 @@
             projectId: "coffee-f9eb7",
             storageBucket: "coffee-f9eb7.firebasestorage.app",
             messagingSenderId: "593795119781",
-            appId: "1:593795119781:web:d7758393a8ef612903eb4c",
-            measurementId: "G-5086DHM0LG"
+            appId: "1:593795119781:web:d7758393a8ef612903eb4c"
         };
 
-        // Initialize Firebase
+        // 初始化 Firebase
         const app = firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
         const personsRef = database.ref('persons');
 
         let persons = [];
 
-        const listContainer = document.getElementById('listContainer');
-        const totalCupsSpan = document.getElementById('totalCups');
-        const totalAmountSpan = document.getElementById('totalAmount');
-        const newNameInput = document.getElementById('newName');
-        const addBtn = document.getElementById('addBtn');
-
-        function generateId() {
-            return Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        }
-
-        function escapeHtml(unsafe) {
-            if (!unsafe) return '';
-            return unsafe.toString()
-                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-                .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
-        }
+        // 监听数据变化
+        personsRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                // 将对象转换为数组
+                persons = Object.keys(data).map(key => ({
+                    id: key,
+                    ...data[key]
+                }));
+            } else {
+                persons = [];
+            }
+            render();
+        });
 
         function render() {
-            if (!persons || persons.length === 0) {
-                listContainer.innerHTML = `<div style="text-align:center; color:#b7a089; padding:30px 0;">☕ No coffee drinkers yet. Add one above!</div>`;
-                totalCupsSpan.innerText = '0';
-                totalAmountSpan.innerText = '€0.00';
+            const listDiv = document.getElementById('personList');
+            const totalSpan = document.getElementById('total');
+            
+            if (persons.length === 0) {
+                listDiv.innerHTML = '<p>No persons yet. Add one above!</p>';
+                totalSpan.innerText = 'Total cups: 0';
                 return;
             }
 
             let html = '';
             let totalCups = 0;
 
-            persons.forEach(p => {
-                totalCups += p.count || 0;
-                const amount = (p.count || 0) * COFFEE_PRICE;
-                const initial = p.name ? p.name.charAt(0).toUpperCase() : '?';
+            persons.forEach(person => {
+                totalCups += person.count || 0;
                 html += `
-                    <div class="person-item" data-id="${p.id}">
-                        <div class="person-info">
-                            <div class="avatar">${escapeHtml(initial)}</div>
-                            <span class="name">${escapeHtml(p.name)}</span>
-                            <span class="count-badge">${p.count || 0} cup${(p.count || 0) !== 1 ? 's' : ''}</span>
-                            <span class="amount">€${amount.toFixed(2)}</span>
-                        </div>
-                        <div class="actions">
-                            <button class="coffee-btn" onclick="window.incrementCoffee('${p.id}')">☕</button>
-                            <button class="delete-btn" onclick="window.deletePerson('${p.id}')">✖</button>
+                    <div class="person">
+                        <span><strong>${escapeHtml(person.name)}</strong></span>
+                        <span class="count">${person.count || 0} cups</span>
+                        <div>
+                            <button onclick="incrementCoffee('${person.id}')">☕ +1</button>
+                            <button onclick="deletePerson('${person.id}')">🗑️</button>
                         </div>
                     </div>
                 `;
             });
 
-            listContainer.innerHTML = html;
-            totalCupsSpan.innerText = totalCups;
-            totalAmountSpan.innerText = '€' + (totalCups * COFFEE_PRICE).toFixed(2);
+            listDiv.innerHTML = html;
+            totalSpan.innerText = `Total cups: ${totalCups}`;
         }
 
-        // Firebase listeners
-        personsRef.on('child_added', (snapshot) => {
-            const data = snapshot.val();
-            if (data && !persons.find(p => p.id === snapshot.key)) {
-                persons.push({ id: snapshot.key, ...data });
-                persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-                render();
+        function escapeHtml(text) {
+            return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        // 添加人员
+        window.addPerson = function() {
+            const name = document.getElementById('nameInput').value.trim();
+            if (!name) {
+                alert('Please enter a name');
+                return;
             }
-        });
 
-        personsRef.on('child_changed', (snapshot) => {
-            const data = snapshot.val();
-            const idx = persons.findIndex(p => p.id === snapshot.key);
-            if (idx !== -1) persons[idx] = { id: snapshot.key, ...data };
-            else persons.push({ id: snapshot.key, ...data });
-            persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            render();
-        });
+            const newPerson = {
+                name: name,
+                count: 0
+            };
 
-        personsRef.on('child_removed', (snapshot) => {
-            persons = persons.filter(p => p.id !== snapshot.key);
-            render();
-        });
+            personsRef.push(newPerson);
+            document.getElementById('nameInput').value = '';
+        };
 
-        // Initial load, add samples if empty
-        personsRef.once('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                persons = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-            } else {
-                const sample = [
-                    { id: generateId(), name: 'Alex', count: 2 },
-                    { id: generateId(), name: 'Jamie', count: 1 }
-                ];
-                persons = sample;
-                sample.forEach(p => personsRef.child(p.id).set({ name: p.name, count: p.count }));
-            }
-            persons.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            render();
-        });
-
-        // Global functions for button clicks
-        window.incrementCoffee = (id) => {
+        // 增加咖啡计数
+        window.incrementCoffee = function(id) {
             const person = persons.find(p => p.id === id);
             if (person) {
-                person.count = (person.count || 0) + 1;
-                render();
-                personsRef.child(id).update({ count: person.count });
+                personsRef.child(id).update({
+                    count: (person.count || 0) + 1
+                });
             }
         };
 
-        window.deletePerson = (id) => {
-            persons = persons.filter(p => p.id !== id);
-            render();
-            personsRef.child(id).remove();
+        // 删除人员
+        window.deletePerson = function(id) {
+            if (confirm('Delete this person?')) {
+                personsRef.child(id).remove();
+            }
         };
 
-        addBtn.addEventListener('click', () => {
-            const name = newNameInput.value.trim();
-            if (!name) return alert('Please enter a name.');
-            const id = generateId();
-            persons.push({ id, name, count: 0 });
-            persons.sort((a, b) => a.name.localeCompare(b.name));
-            render();
-            personsRef.child(id).set({ name, count: 0 });
-            newNameInput.value = '';
-            newNameInput.focus();
-        });
-
-        newNameInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addBtn.click();
+        // 添加一些示例数据（如果数据库为空）
+        personsRef.once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                personsRef.push({ name: 'Alex', count: 2 });
+                personsRef.push({ name: 'Jamie', count: 1 });
+            }
         });
     </script>
 </body>
